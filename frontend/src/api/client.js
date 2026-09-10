@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const client = axios.create({ baseURL: '/api' });
+// In local dev, Vite proxies '/api' to the backend (see vite.config.js).
+// In a split deployment (e.g. frontend on Vercel), set VITE_API_URL to the
+// backend's public URL, e.g. https://your-backend.onrender.com/api
+const baseURL = import.meta.env.VITE_API_URL || '/api';
+
+const client = axios.create({ baseURL });
 
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('polar_token');
