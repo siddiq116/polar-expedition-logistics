@@ -190,4 +190,8 @@ function run() {
   console.log('Login with: command1 / logistics1 / field1, password: polar123');
 }
 
-run();
+module.exports = { run };
+
+if (require.main === module) {
+  run();
+}

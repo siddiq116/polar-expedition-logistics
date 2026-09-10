@@ -1,8 +1,18 @@
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 
-require('./db'); // ensures schema is created
+const db = require('./db'); // ensures schema is created
+
+// First boot on a fresh deploy (e.g. Render's ephemeral disk) has no data yet -
+// seed it automatically so the demo always has something to show.
+const campCount = db.prepare('SELECT COUNT(*) c FROM camps').get().c;
+if (campCount === 0) {
+  console.log('No data found — seeding database with demo data...');
+  require('./data/seed').run();
+}
 
 const authRoutes = require('./routes/auth');
 const campRoutes = require('./routes/camps');
@@ -27,6 +37,18 @@ app.use('/api/assets', assetRoutes);
 app.use('/api/personnel', personnelRoutes);
 app.use('/api/hazards', hazardRoutes);
 app.use('/api/simulate', simulateRoutes);
+
+// Serve the built frontend (present in production/deploy builds) so the
+// whole app is reachable from a single URL. In local dev the frontend runs
+// separately via `npm run dev` and this block is simply skipped.
+const distPath = path.join(__dirname, '..', 'frontend', 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 app.use((err, req, res, next) => {
   console.error(err);
