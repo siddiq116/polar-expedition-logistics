@@ -38,12 +38,12 @@ app.use('/api/personnel', personnelRoutes);
 app.use('/api/hazards', hazardRoutes);
 app.use('/api/simulate', simulateRoutes);
 
-// Serve the built frontend when it's sitting next to the backend (single-
-// service deploys, e.g. Render). On Vercel the frontend is built and served
-// separately as static output, and this function's bundle won't contain
-// frontend/dist anyway, so this block is skipped there.
+// Serve the built frontend when it's sitting next to the backend. This is
+// the only deploy shape now: one service (Vercel function or a plain Node
+// host like Render) builds frontend/dist and this Express app serves it
+// alongside the API.
 const distPath = path.join(__dirname, '..', 'frontend', 'dist');
-if (!process.env.VERCEL && fs.existsSync(distPath)) {
+if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
@@ -56,7 +56,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// On Vercel this module is required by api/index.js and invoked per-request
+// On Vercel this module is the service entrypoint and is invoked per-request
 // instead of listening on a port.
 if (require.main === module) {
   const PORT = process.env.PORT || 4000;
