@@ -1,0 +1,7 @@
+{
+  "name": "polar-expedition-logistics",
+  "private": true,
+  "engines": {
+    "node": "22.x"
+  }
+}

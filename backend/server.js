@@ -38,11 +38,12 @@ app.use('/api/personnel', personnelRoutes);
 app.use('/api/hazards', hazardRoutes);
 app.use('/api/simulate', simulateRoutes);
 
-// Serve the built frontend (present in production/deploy builds) so the
-// whole app is reachable from a single URL. In local dev the frontend runs
-// separately via `npm run dev` and this block is simply skipped.
+// Serve the built frontend when it's sitting next to the backend (single-
+// service deploys, e.g. Render). On Vercel the frontend is built and served
+// separately as static output, and this function's bundle won't contain
+// frontend/dist anyway, so this block is skipped there.
 const distPath = path.join(__dirname, '..', 'frontend', 'dist');
-if (fs.existsSync(distPath)) {
+if (!process.env.VERCEL && fs.existsSync(distPath)) {
   app.use(express.static(distPath));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
@@ -55,7 +56,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Polar logistics API running on http://localhost:${PORT}`);
-});
+// On Vercel this module is required by api/index.js and invoked per-request
+// instead of listening on a port.
+if (require.main === module) {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => {
+    console.log(`Polar logistics API running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

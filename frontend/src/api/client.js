@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // In local dev, Vite proxies '/api' to the backend (see vite.config.js).
-// In a split deployment (e.g. frontend on Vercel), set VITE_API_URL to the
-// backend's public URL, e.g. https://your-backend.onrender.com/api
+// In production both frontend and backend are served from the same Vercel
+// deployment (see vercel.json), so the relative '/api' path just works.
 const baseURL = import.meta.env.VITE_API_URL || '/api';
 
 const client = axios.create({ baseURL });

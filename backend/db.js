@@ -1,7 +1,12 @@
 const path = require('path');
 const { DatabaseSync } = require('node:sqlite');
 
-const dbPath = path.join(__dirname, 'data', 'polar.db');
+// Vercel's serverless functions have a read-only filesystem except /tmp,
+// and /tmp is wiped on every cold start - the seeding logic in server.js
+// re-populates it automatically, so this is fine for a demo deployment.
+const dbPath = process.env.VERCEL
+  ? path.join('/tmp', 'polar.db')
+  : path.join(__dirname, 'data', 'polar.db');
 const db = new DatabaseSync(dbPath);
 
 db.exec('PRAGMA journal_mode = WAL;');
